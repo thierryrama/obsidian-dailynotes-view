@@ -1,5 +1,6 @@
 import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
 import { EditorView } from "@codemirror/view";
+import { deleteCharBackward } from "@codemirror/commands";
 
 
 // Remember to rename these classes and interfaces!
@@ -26,7 +27,7 @@ export default class DailyNotesViewPlugin extends Plugin {
 			new Notice('This is a notice!');
 		});
 
-		if (this.settings.enableBackspaceCommand) {
+		//if (this.settings.enableBackspaceCommand) {
 			// This adds an editor command that can perform some operation on the current editor instance
 			this.addCommand({
 				id: 'dailynotesview-backspace-editor-command',
@@ -35,11 +36,13 @@ export default class DailyNotesViewPlugin extends Plugin {
 					if (view) {
 						// @ts-expect-error
 						const editorView = view.editor.cm as EditorView;
-
+						console.log('backspace command called.');
+						deleteCharBackward(editorView);
+						//editorView.contentDOM.dispatchEvent(new KeyboardEvent('keydown', {keyCode:13}))
 					}
 				}
 			});
-		}
+		//}
 
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
@@ -73,7 +76,7 @@ class DailyNotesViewSettingTab extends PluginSettingTab {
 
 		containerEl.empty();
 
-		containerEl.createEl('h2', {text: 'Settings for my awesome plugin.'});
+		containerEl.createEl('h2', {text: 'Keyboard'});
 
 		new Setting(containerEl)
 			.setName('Enable Backspace key command')
@@ -84,5 +87,7 @@ class DailyNotesViewSettingTab extends PluginSettingTab {
 					this.plugin.settings.enableBackspaceCommand = value
 					await this.plugin.saveSettings()
 				}));
+
+
 	}
 }
