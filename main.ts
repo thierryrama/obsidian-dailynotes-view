@@ -1,17 +1,14 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
-import { EditorView } from "@codemirror/view";
-import { deleteCharBackward } from "@codemirror/commands";
+import {Editor, MarkdownView, Notice, Plugin} from 'obsidian';
+import {EditorView} from "@codemirror/view";
+import {deleteCharBackward} from "@codemirror/commands";
+import {DailyNotesViewSettings, DailyNotesViewSettingTab, LengthUnit} from "./DailyNotesViewSettingTab";
 
 
 // Remember to rename these classes and interfaces!
 
-interface DailyNotesViewSettings {
-
-	enableBackspaceCommand: boolean;
-
-}
-
 const DEFAULT_SETTINGS: DailyNotesViewSettings = {
+	length: 1,
+	lengthUnit: LengthUnit.Week,
 	enableBackspaceCommand: false
 }
 
@@ -27,8 +24,9 @@ export default class DailyNotesViewPlugin extends Plugin {
 			new Notice('This is a notice!');
 		});
 
-		//if (this.settings.enableBackspaceCommand) {
-			// This adds an editor command that can perform some operation on the current editor instance
+
+		// Command to type backspace. Useful on iPad and Pencil.
+		if (this.settings.enableBackspaceCommand) {
 			this.addCommand({
 				id: 'dailynotesview-backspace-editor-command',
 				name: 'Type backspace',
@@ -36,14 +34,11 @@ export default class DailyNotesViewPlugin extends Plugin {
 					if (view) {
 						// @ts-expect-error
 						const editorView = view.editor.cm as EditorView;
-						console.log('backspace command called.');
 						deleteCharBackward(editorView);
-						//editorView.contentDOM.dispatchEvent(new KeyboardEvent('keydown', {keyCode:13}))
 					}
 				}
 			});
-		//}
-
+		}
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
 		this.addSettingTab(new DailyNotesViewSettingTab(this.app, this));
@@ -63,31 +58,3 @@ export default class DailyNotesViewPlugin extends Plugin {
 	}
 }
 
-class DailyNotesViewSettingTab extends PluginSettingTab {
-	plugin: DailyNotesViewPlugin;
-
-	constructor(app: App, plugin: DailyNotesViewPlugin) {
-		super(app, plugin);
-		this.plugin = plugin;
-	}
-
-	display(): void {
-		const {containerEl} = this;
-
-		containerEl.empty();
-
-		containerEl.createEl('h2', {text: 'Keyboard'});
-
-		new Setting(containerEl)
-			.setName('Enable Backspace key command')
-			.setDesc('Enable adding a command that simulates typing the backspace key.')
-			.addToggle(toggle => toggle
-				.setValue(this.plugin.settings.enableBackspaceCommand)
-				.onChange(async (value) => {
-					this.plugin.settings.enableBackspaceCommand = value
-					await this.plugin.saveSettings()
-				}));
-
-
-	}
-}

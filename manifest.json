@@ -3,7 +3,7 @@
 	"name": "DailyNotes View",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
-	"description": "View many daily notes at once.",
+	"description": "View many daily notes at once with outline.",
 	"author": "Thierry Ramanampanoharana",
 	"authorUrl": "https://github.com/thierryrama",
 	"isDesktopOnly": false
