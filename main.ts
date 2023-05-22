@@ -1,16 +1,18 @@
-import {Editor, MarkdownView, Notice, Plugin} from 'obsidian';
+import {Editor, MarkdownView, Notice, Plugin} from "obsidian";
 import {EditorView} from "@codemirror/view";
 import {deleteCharBackward} from "@codemirror/commands";
-import {DailyNotesViewSettings, DailyNotesViewSettingTab, LengthUnit} from "./DailyNotesViewSettingTab";
+import {DailyNotesViewSettings, DailyNotesViewSettingTab, DisplayOrder, LengthUnit} from "./DailyNotesViewSettingTab";
 
-
-// Remember to rename these classes and interfaces!
-
+/**
+ * Default values for setting.
+ */
 const DEFAULT_SETTINGS: DailyNotesViewSettings = {
+	outlineNoteName: "DailyNotesOutline",
 	length: 1,
 	lengthUnit: LengthUnit.Week,
-	enableBackspaceCommand: false
-}
+	enableBackspaceCommand: false,
+	displayOrder: DisplayOrder.RecentFirst
+};
 
 export default class DailyNotesViewPlugin extends Plugin {
 	settings: DailyNotesViewSettings;
@@ -19,17 +21,18 @@ export default class DailyNotesViewPlugin extends Plugin {
 		await this.loadSettings();
 
 		// This creates an icon in the left ribbon.
-		const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
+		const ribbonIconEl = this.addRibbonIcon("dice", "Sample Plugin", (evt: MouseEvent) => {
 			// Called when the user clicks the icon.
-			new Notice('This is a notice!');
+			new Notice("This is a notice!");
 		});
 
 
 		// Command to type backspace. Useful on iPad and Pencil.
 		if (this.settings.enableBackspaceCommand) {
 			this.addCommand({
-				id: 'dailynotesview-backspace-editor-command',
-				name: 'Type backspace',
+				id: "dailynotesview-backspace-editor-command",
+				name: "Type backspace",
+				mobileOnly: true,
 				editorCallback: (editor: Editor, view: MarkdownView) => {
 					if (view) {
 						// @ts-expect-error
