@@ -74,7 +74,10 @@ export default class DailyNotesViewPlugin extends Plugin {
 	 */
 	async generateNotesOutline() {
 		let outlinePath = this.settings.outlineNoteName;
-		let notes = this.getDailyNotesInRange(this.settings.length, this.settings.lengthUnit, this.settings.displayOrder)
+		let notes = this.getDailyNotesInRange(
+			this.settings.length,
+			this.settings.lengthUnit,
+			this.settings.displayOrder);
 		let content = this.generateOutlineContent(notes);
 
 		let outlineFile = this.app.vault.getAbstractFileByPath(outlinePath) as TFile;
@@ -125,19 +128,22 @@ export default class DailyNotesViewPlugin extends Plugin {
 		// date range
 		let upperBound = moment();
 		let lowerBound = upperBound.clone().subtract(length, durationUnit);
-		console.log(`upperbound=${upperBound}`);
-		console.log(`lowerbound=${lowerBound}`);
 		let allDailyNotes = Object.values(getAllDailyNotes());
 		let dailyNotesInRange = allDailyNotes
 			.map(tFile => ({date: getDateFromFile(tFile, "day") ?? upperBound, file:tFile}))
 			.filter(value => value.date.isBetween(lowerBound, upperBound, "day", "[]"))
 
-		switch (order) {
+		// enums are the worst part of typescript. Not natural and subject to confusion. Stay away from
+		// especially when using string enum. The crazy use of keys and values is due to getting the enum value so
+		// that it matches what is used by the case statement. The dumbest language construct ever.
+		switch (Object.values(DisplayOrder)[Object.keys(DisplayOrder).indexOf(order)]) {
 			case DisplayOrder.OlderFirst:
-				dailyNotesInRange.sort((a, b) => a.date.isSameOrAfter(b.date) ? -1 : 1);
+				dailyNotesInRange.sort((a, b) =>
+					a.date.isSameOrAfter(b.date) ? 1 : -1);
 				break;
 			case DisplayOrder.RecentFirst:
-				dailyNotesInRange.sort((a, b) => a.date.isSameOrBefore(b.date) ? -1 : 1);
+				dailyNotesInRange.sort((a, b) =>
+					a.date.isSameOrBefore(b.date) ? 1 : -1);
 				break;
 		}
 
@@ -148,8 +154,8 @@ export default class DailyNotesViewPlugin extends Plugin {
 	 * Register listener for re-generating of the outline. We need to listen when a file is created, deleted and renamed.
 	 */
 	registerFileEventListener() {
-		let regenerateOutlineFunc = async () => {
-			if (this.app.workspace.layoutReady) {
+		let regenerateOutlineFunc = async (file: TFile) => {
+			if (this.app.workspace.layoutReady && file.name !== this.settings.outlineNoteName) {
 				await this.generateNotesOutline();
 			}
 		}

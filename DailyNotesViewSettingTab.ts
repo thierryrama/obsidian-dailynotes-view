@@ -12,7 +12,9 @@ export enum LengthUnit {
 }
 
 /**
- * Order in which the notes will appear.
+ * Order in which the notes will appear. This is dangerous to use enum values for the UI as string enums
+ * become union enums when all enums have values and have a different semantic to other languages.
+ * Be careful when comparing those enums.
  */
 export enum DisplayOrder {
 	OlderFirst = "Older first",
@@ -91,7 +93,10 @@ export class DailyNotesViewSettingTab extends PluginSettingTab {
 						// TODO: delete old file and generate new one
 					});
 				text.inputEl.maxLength = 30;
-			})
+			});
+		new Setting(containerEl)
+			.setName("Regenerate daily notes outline")
+			.setDesc("Manually regenerate the content of the daily notes outline.")
 			.addButton(button => {
 				button.setButtonText("Re-generate")
 					.onClick(() => {
