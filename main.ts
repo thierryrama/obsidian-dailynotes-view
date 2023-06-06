@@ -1,4 +1,4 @@
-import {Editor, MarkdownView, Notice, Plugin, TFile, debounce} from "obsidian";
+import {Editor, MarkdownView, Plugin, TFile} from "obsidian";
 import {EditorView} from "@codemirror/view";
 import {deleteCharBackward} from "@codemirror/commands";
 import {DailyNotesViewSettings, DailyNotesViewSettingTab, DisplayOrder, LengthUnit} from "./DailyNotesViewSettingTab";
@@ -23,10 +23,10 @@ export default class DailyNotesViewPlugin extends Plugin {
 		await this.loadSettings();
 
 		// This creates an icon in the left ribbon.
-		const ribbonIconEl = this.addRibbonIcon(
+		this.addRibbonIcon(
 			"calendar-heart",
 			"Open Daily Notes Outline",
-			async (evt: MouseEvent) => {
+			async () => {
 				await this.openNotesOutline();
 			});
 
@@ -88,10 +88,25 @@ export default class DailyNotesViewPlugin extends Plugin {
 		}
 	}
 
-	protected generateOutlineContent(notes: TFile[]): string {
+	/**
+	 * Generate the content of the notes outline from the list of notes.
+	 * @param notes list of notes.
+	 * @returns {string}
+	 */
+	protected generateOutlineContent(notes: { date: moment.Moment; file: TFile }[]): string {
 		let content = `Found ${notes.length} notes.\n\n`;
+		let year = 0;
+		let month = 0;
 		for (let note of notes) {
-			content += `# ${note.basename}\n![[${note.basename}]]\n\n`;
+			if (year != note.date.year()) {
+				year = note.date.year();
+				month = note.date.month();
+				content += `# ${year}\n## ${note.date.format('MMMM')}\n`;
+			} else if (month !== note.date.month()) {
+				month = note.date.month();
+				content += `## ${note.date.format('MMMM')}\n`;
+			}
+			content += `### ${note.file.basename}\n![[${note.file.basename}]]\n\n`;
 		}
 
 		return content;
@@ -104,7 +119,10 @@ export default class DailyNotesViewPlugin extends Plugin {
 	 * @param unit the unit in which the size of the moving window is expressed.
 	 * @param order the order in which the notes will be displayed.
 	 */
-	protected getDailyNotesInRange(length: number, unit: LengthUnit, order: DisplayOrder): TFile[] {
+	protected getDailyNotesInRange(length: number, unit: LengthUnit, order: DisplayOrder): {
+		date: moment.Moment;
+		file: TFile
+	}[] {
 		let durationUnit: moment.unitOfTime.DurationConstructor;
 
 		switch (unit) {
@@ -147,7 +165,7 @@ export default class DailyNotesViewPlugin extends Plugin {
 				break;
 		}
 
-		return dailyNotesInRange.map(value => value.file);
+		return dailyNotesInRange;
 	}
 
 	/**
@@ -169,7 +187,7 @@ export default class DailyNotesViewPlugin extends Plugin {
 	 * Opens the outlines note.
 	 */
 	async openNotesOutline() {
-		let leaf = this.app.workspace.getLeaf(false);
+		let leaf = this.app.workspace.getLeaf('tab');
 		await this.generateNotesOutline();
 
 		let viewer = this.app.vault.getAbstractFileByPath(this.settings.outlineNoteName) as TFile;

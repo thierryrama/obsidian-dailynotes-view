@@ -108,7 +108,7 @@ export class DailyNotesViewSettingTab extends PluginSettingTab {
 		containerEl.createEl("h2", {text: "Keyboard"});
 		new Setting(containerEl)
 			.setName("Enable Backspace key command")
-			.setDesc("Enable adding a command that simulates typing the backspace key.")
+			.setDesc("Enable adding a command that simulates typing the backspace key. Very useful when using a pen as the only input method.")
 			.addToggle(toggle => toggle
 				.setValue(this.plugin.settings.enableBackspaceCommand)
 				.onChange(async (value) => {
