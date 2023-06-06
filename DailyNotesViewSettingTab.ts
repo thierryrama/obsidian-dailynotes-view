@@ -54,8 +54,7 @@ export class DailyNotesViewSettingTab extends PluginSettingTab {
 			.setName("Length")
 			.setDesc("How far back to look for notes")
 			.addText(text => {
-				text
-					.setValue(this.plugin.settings.length.toString())
+				text.setValue(this.plugin.settings.length.toString())
 					.onChange(async (value) => {
 						this.plugin.settings.length = +value;
 						await this.plugin.saveSettings();
@@ -69,6 +68,7 @@ export class DailyNotesViewSettingTab extends PluginSettingTab {
 					this.plugin.settings.lengthUnit = value as LengthUnit;
 					await this.plugin.saveSettings();
 				}));
+
 		new Setting(containerEl)
 			.setName("Daily Notes order")
 			.setDesc("Set the order in which the notes are displayed one after the other.")
@@ -79,6 +79,24 @@ export class DailyNotesViewSettingTab extends PluginSettingTab {
 					this.plugin.settings.displayOrder = value as DisplayOrder;
 					await this.plugin.saveSettings();
 				}));
+
+		new Setting(containerEl)
+			.setName("Name of notes outline")
+			.setDesc("The name of the markdown file that contains links to notes within the date range.")
+			.addText(text => {
+				text.setValue(this.plugin.settings.outlineNoteName)
+					.onChange(async (value) => {
+						this.plugin.settings.outlineNoteName = value;
+						await this.plugin.saveSettings();
+					});
+				text.inputEl.maxLength = 30;
+			})
+			.addButton(button => {
+				button.setButtonText("Re-generate")
+					.onClick(evt => {
+						this.plugin.generateNotesOutline();
+					})
+			});
 
 		// Keyboard settings
 		containerEl.createEl("h2", {text: "Keyboard"});
