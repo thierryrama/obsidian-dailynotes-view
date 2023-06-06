@@ -88,12 +88,13 @@ export class DailyNotesViewSettingTab extends PluginSettingTab {
 					.onChange(async (value) => {
 						this.plugin.settings.outlineNoteName = value;
 						await this.plugin.saveSettings();
+						// TODO: delete old file and generate new one
 					});
 				text.inputEl.maxLength = 30;
 			})
 			.addButton(button => {
 				button.setButtonText("Re-generate")
-					.onClick(evt => {
+					.onClick(() => {
 						this.plugin.generateNotesOutline();
 					})
 			});

@@ -23,10 +23,12 @@ export default class DailyNotesViewPlugin extends Plugin {
 		await this.loadSettings();
 
 		// This creates an icon in the left ribbon.
-		const ribbonIconEl = this.addRibbonIcon("dice", "Sample Plugin", (evt: MouseEvent) => {
-			// Called when the user clicks the icon.
-			new Notice("This is a notice!");
-		});
+		const ribbonIconEl = this.addRibbonIcon(
+			"calendar-heart",
+			"Open Daily Notes Outline",
+			async (evt: MouseEvent) => {
+				await this.openNotesOutline();
+			});
 
 		// Command to type backspace. Useful on iPad and Pencil.
 		if (this.settings.enableBackspaceCommand) {
@@ -47,6 +49,7 @@ export default class DailyNotesViewPlugin extends Plugin {
 		// This adds a settings tab so the user can configure various aspects of the plugin
 		this.addSettingTab(new DailyNotesViewSettingTab(this.app, this));
 
+		this.registerFileEventListener();
 	}
 
 	onunload() {
@@ -85,7 +88,7 @@ export default class DailyNotesViewPlugin extends Plugin {
 	protected generateOutlineContent(notes: TFile[]): string {
 		let content = `Found ${notes.length} notes.\n\n`;
 		for (let note of notes) {
-			content += `# ![[${note.basename}]]\n\n`;
+			content += `# ${note.basename}\n![[${note.basename}]]\n\n`;
 		}
 
 		return content;
@@ -139,6 +142,32 @@ export default class DailyNotesViewPlugin extends Plugin {
 		}
 
 		return dailyNotesInRange.map(value => value.file);
+	}
+
+	/**
+	 * Register listener for re-generating of the outline. We need to listen when a file is created, deleted and renamed.
+	 */
+	registerFileEventListener() {
+		let regenerateOutlineFunc = async () => {
+			if (this.app.workspace.layoutReady) {
+				await this.generateNotesOutline();
+			}
+		}
+
+		this.registerEvent(this.app.vault.on("create", regenerateOutlineFunc));
+		this.registerEvent(this.app.vault.on("delete", regenerateOutlineFunc));
+		this.registerEvent(this.app.vault.on("rename", regenerateOutlineFunc));
+	}
+
+	/**
+	 * Opens the outlines note.
+	 */
+	async openNotesOutline() {
+		let leaf = this.app.workspace.getLeaf(false);
+		await this.generateNotesOutline();
+
+		let viewer = this.app.vault.getAbstractFileByPath(this.settings.outlineNoteName) as TFile;
+		await leaf.openFile(viewer);
 	}
 }
 
